@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memorama Número Cantidad</title>
+    <style>
+        :root {
+            --bg-color: #e0f7fa;
+            --primary-color: #4caf50;
+            --card-back: #ff9800;
+            --card-front-num: #2196f3;
+            --card-front-qty: #9c27b0;
+            --text-color: #333;
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial Rounded MT Bold', 'Helvetica Neue', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            user-select: none;
+        }
+
+        /* --- PANTALLA DE INICIO (INDEX) --- */
+        #screen-index {
+            text-align: center;
+            background: white;
+            padding: 40px;
+            border-radius: 25px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            max-width: 600px;
+            width: 90%;
+        }
+
+        h1 {
+            color: #ff5722;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px #ffe0b2;
+        }
+
+        p.subtitle {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin: 15px 0 10px 0;
+            color: #555;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .options-container {
+            margin-bottom: 25px;
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 15px;
+        }
+
+        .btn-option {
+            background-color: #2196f3;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 15px;
+            margin: 5px;
+            cursor: pointer;
+            box-shadow: 0 4px #1976d2;
+            transition: all 0.1s ease;
+        }
+
+        .btn-option:active {
+            box-shadow: 0 1px #1976d2;
+            transform: translateY(3px);
+        }
+
+        .btn-option.selected {
+            background-color: #00bcd4;
+            box-shadow: 0 4px #0097a7;
+            border: 2px solid white;
+        }
+
+        .btn-play {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 18px 50px;
+            font-size: 1.8rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 6px #388e3c;
+            transition: all 0.1s ease;
+            width: 80%;
+            max-width: 300px;
+            margin-top: 15px;
+        }
+
+        .btn-play:active {
+            box-shadow: 0 2px #388e3c;
+            transform: translateY(4px);
+        }
+
+        /* --- PANTALLA DEL JUEGO --- */
+        #screen-game {
+            display: none;
+            width: 100%;
+            max-width: 1200px;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .game-header {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            margin-bottom: 20px;
+            background: white;
+            padding: 15px 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            gap: 15px;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .scoreboard {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            width: 100%;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-top: 2px solid #eee;
+            padding-top: 10px;
+        }
+
+        .player-score {
+            padding: 8px 15px;
+            border-radius: 10px;
+            background: #f5f5f5;
+            transition: all 0.3s ease;
+        }
+
+        .player-score.active-turn {
+            background-color: #fff9c4;
+            border: 2px solid #fbc02d;
+            transform: scale(1.05);
+        }
+
+        .btn-back {
+            background-color: #e57373;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        /* Tablero del Memorama */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 12px;
+            width: 100%;
+            perspective: 1000px;
+        }
+
+        /* Estilos de las Tarjetas */
+        .card {
+            height: 110px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.5s;
+            cursor: pointer;
+        }
+
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            font-weight: bold;
+        }
+
+        /* Reverso de la tarjeta */
+        .card-back {
+            background-color: var(--card-back);
+            color: white;
+            font-size: 2.2rem;
+            border: 4px solid white;
+        }
+
+        /* Frente de la tarjeta */
+        .card-front {
+            background-color: white;
+            transform: rotateY(180deg);
+            display: flex;
+            flex-direction: column;
+            font-size: 1.2rem;
+            border: 4px solid #fff;
+            padding: 5px;
+        }
+
+        .card-front.type-number {
+            border-color: var(--card-front-num);
+            font-size: 3rem;
+            color: var(--card-front-num);
+        }
+
+        .card-front.type-quantity {
+            border-color: var(--card-front-qty);
+        }
+
+        /* Contenedor de figuras geométricas para representar cantidad */
+        .shapes-container {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 3px;
+            justify-items: center;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+        }
+
+        .shape {
+            width: 12px;
+            height: 12px;
+            background-color: #ffeb3b;
+            border: 1.5px solid #fbc02d;
+            border-radius: 50%;
+        }
+
+        /* Mensaje de Victoria */
+        #victory-message {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 40px;
+            border-radius: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            text-align: center;
+            z-index: 10;
+            width: 90%;
+            max-width: 450px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- PANTALLA DE INICIO (INDEX) -->
+    <div id="screen-index">
+        <h1>Memorama Número Cantidad 🧩</h1>
+        <p class="subtitle">Relaciona el número con la cantidad de objetos de forma divertida.</p>
+        
+        <!-- Selección de Modo de Juego -->
+        <div class="options-container">
+            <div class="section-title">Modo de Juego</div>
+            <button class="btn-option selected" id="mode-single" onclick="selectMode('single')">Individual 👤</button>
+            <button class="btn-option" id="mode-multi" onclick="selectMode('multi')">2 Jugadores 👥</button>
+        </div>
+
+        <!-- Selección de Niveles -->
+        <div class="options-container">
+            <div class="section-title">Elige un nivel</div>
+            <button class="btn-level btn-option selected" onclick="selectLevel(1, 10, this)">Nivel 1 (1-10)</button>
+            <button class="btn-level btn-option" onclick="selectLevel(2, 15, this)">Nivel 2 (1-15)</button>
+            <button class="btn-level btn-option" onclick="selectLevel(3, 20, this)">Nivel 3 (1-20)</button>
+            <button class="btn-level btn-option" onclick="selectLevel(4, 30, this)">Nivel 4 (1-30)</button>
+        </div>
+
+        <button class="btn-play" onclick="startGame()">¡JUGAR!</button>
+    </div>
+
+    <!-- PANTALLA DEL JUEGO -->
+    <div id="screen-game">
+        <div class="game-header">
+            <div class="header-top">
+                <button class="btn-back" onclick="showIndex()">⬅ Inicio</button>
+                <div id="game-title-info" style="font-size: 1.2rem; font-weight: bold;">Nivel 1</div>
+            </div>
+            
+            <!-- Marcadores dinámicos para individual o multijugador -->
+            <div class="scoreboard" id="scoreboard-container">
+                <!-- Se rellena con JS -->
+            </div>
+        </div>
+        <div class="grid-container" id="grid"></div>
+    </div>
+
+    <!-- MENSAJE DE VICTORIA -->
+    <div id="victory-message">
+        <h2 style="color: #4caf50; font-size: 2.5rem; margin: 0 0 10px 0;">¡Fin del Juego! 🎉</h2>
+        <p id="victory-text" style="font-size: 1.2rem; margin-bottom: 20px; font-weight: bold;"></p>
+        <button class="btn-play" style="font-size: 1.2rem; padding: 10px 30px;" onclick="resetGame()">Jugar de nuevo</button>
+    </div>
+
+    <script>
+        const indexScreen = document.getElementById('screen-index');
+        const gameScreen = document.getElementById('screen-game');
+        const victoryMessage = document.getElementById('victory-message');
+        const grid = document.getElementById('grid');
+        const scoreboardContainer = document.getElementById('scoreboard-container');
+        const gameTitleInfo = document.getElementById('game-title-info');
+        const victoryText = document.getElementById('victory-text');
+
+        let currentLevel = 1;
+        let maxNumber = 10;
+        let gameMode = 'single'; // 'single' o 'multi'
+        
+        let cardsData = [];
+        let flippedCards = [];
+        let lockBoard = false;
+        
+        // Puntuaciones
+        let matchedPairsTotal = 0;
+        let scorePlayer1 = 0;
+        let scorePlayer2 = 0;
+        let activePlayer = 1; // 1 o 2
+
+        function selectMode(mode) {
+            gameMode = mode;
+            document.getElementById('mode-single').classList.toggle('selected', mode === 'single');
+            document.getElementById('mode-multi').classList.toggle('selected', mode === 'multi');
+        }
+
+        function selectLevel(level, maxNum, element) {
+            currentLevel = level;
+            maxNumber = maxNum;
+            document.querySelectorAll('.btn-level').forEach(btn => btn.classList.remove('selected'));
+            element.classList.add('selected');
+        }
+
+        function generateCards() {
+            let pairs = [];
+            for (let i = 1; i <= maxNumber; i++) {
+                pairs.push(i);
+            }
+            
+            let deck = [];
+            pairs.forEach(num => {
+                deck.push({ id: num, type: 'number', value: num });
+                deck.push({ id: num, type: 'quantity', value: num });
+            });
+
+            return deck.sort(() => Math.random() - 0.5);
+        }
+
+        function startGame() {
+            indexScreen.style.display = 'none';
+            gameScreen.style.display = 'flex';
+            victoryMessage.style.display = 'none';
+            resetGameEngine();
+        }
+
+        function showIndex() {
+            indexScreen.style.display = 'block';
+            gameScreen.style.display = 'none';
+            victoryMessage.style.display = 'none';
+        }
+
+        function resetGameEngine() {
+            grid.innerHTML = '';
+            flippedCards = [];
+            lockBoard = false;
+            
+            matchedPairsTotal = 0;
+            scorePlayer1 = 0;
+            scorePlayer2 = 0;
+            activePlayer = 1;
+
+            gameTitleInfo.textContent = `Nivel ${currentLevel} (1-${maxNumber})`;
+            updateScoreboard();
+
+            cardsData = generateCards();
+            createCardElements();
+        }
+
+        function resetGame() {
+            victoryMessage.style.display = 'none';
+            resetGameEngine();
+        }
+
+        function updateScoreboard() {
+            if (gameMode === 'single') {
+                scoreboardContainer.innerHTML = `
+                    <div class="player-score style="width: 100%; text-align: center;">
+                        Parejas encontradas: <span id="score-p1">0</span> / ${maxNumber}
+                    </div>
+                `;
+            } else {
+                scoreboardContainer.innerHTML = `
+                    <div class="player-score ${activePlayer === 1 ? 'active-turn' : ''}" id="score-block-p1">
+                        Jugador 1 👤: <span id="score-p1">${scorePlayer1}</span>
+                    </div>
+                    <div class="player-score ${activePlayer === 2 ? 'active-turn' : ''}" id="score-block-p2">
+                        Jugador 2 👤: <span id="score-p2">${scorePlayer2}</span>
+                    </div>
+                `;
+            }
+        }
+
+        function createCardElements() {
+            cardsData.forEach((data, index) => {
+                const card = document.createElement('div');
+                card.classList.add('card');
+                card.dataset.id = data.id;
+                card.dataset.type = data.type;
+                card.dataset.index = index;
+
+                const back = document.createElement('div');
+                back.classList.add('card-face', 'card-back');
+                back.textContent = '?';
+
+                const front = document.createElement('div');
+                front.classList.add('card-face', 'card-front');
+
+                if (data.type === 'number') {
+                    front.classList.add('type-number');
+                    front.textContent = data.value;
+                } else {
+                    front.classList.add('type-quantity');
+                    const shapesContainer = document.createElement('div');
+                    shapesContainer.classList.add('shapes-container');
+                    
+                    if (maxNumber > 15) {
+                        shapesContainer.style.gridTemplateColumns = 'repeat(6, 1fr)';
+                    }
+                    if (maxNumber > 20) {
+                        shapesContainer.style.gridTemplateColumns = 'repeat(7, 1fr)';
+                    }
+                    
+                    for (let i = 0; i < data.value; i++) {
+                        const shape = document.createElement('div');
+                        shape.classList.add('shape');
+                        shapesContainer.appendChild(shape);
+                    }
+                    front.appendChild(shapesContainer);
+                }
+
+                card.appendChild(back);
+                card.appendChild(front);
+                card.addEventListener('click', flipCard);
+                grid.appendChild(card);
+            });
+        }
+
+        function flipCard() {
+            if (lockBoard) return;
+            if (this.classList.contains('flipped')) return;
+
+            this.classList.add('flipped');
+            flippedCards.push(this);
+
+            if (flippedCards.length === 2) {
+                checkMatch();
+            }
+        }
+
+        function checkMatch() {
+            const [card1, card2] = flippedCards;
+            const isMatch = card1.dataset.id === card2.dataset.id && card1.dataset.type !== card2.dataset.type;
+
+            if (isMatch) {
+                handleMatch();
+            } else {
+                handleMismatch();
+            }
+        }
+
+        function handleMatch() {
+            matchedPairsTotal++;
+            
+            if (gameMode === 'single') {
+                scorePlayer1 = matchedPairsTotal;
+                document.getElementById('score-p1').textContent = scorePlayer1;
+            } else {
+                if (activePlayer === 1) {
+                    scorePlayer1++;
+                    document.getElementById('score-p1').textContent = scorePlayer1;
+                } else {
+                    scorePlayer2++;
+                    document.getElementById('score-p2').textContent = scorePlayer2;
+                }
+                // En modo multijugador, si aciertas mantienes el turno.
+            }
+
+            flippedCards = [];
+
+            if (matchedPairsTotal === maxNumber) {
+                setTimeout(endGame, 600);
+            }
+        }
+
+        function handleMismatch() {
+            lockBoard = true;
+            setTimeout(() => {
+                flippedCards[0].classList.remove('flipped');
+                flippedCards[1].classList.remove('flipped');
+                flippedCards = [];
+                
+                // Cambiar de turno si es multijugador
+                if (gameMode === 'multi') {
+                    activePlayer = activePlayer === 1 ? 2 : 1;
+                    document.getElementById('score-block-p1').classList.toggle('active-turn', activePlayer === 1);
+                    document.getElementById('score-block-p2').classList.toggle('active-turn', activePlayer === 2);
+                }
+                
+                lockBoard = false;
+            }, 1200);
+        }
+
+        function endGame() {
+            if (gameMode === 'single') {
+                victoryText.textContent = `¡Excelente trabajo! Completaste el Nivel ${currentLevel} con las ${maxNumber} parejas.`;
+            } else {
+                if (scorePlayer1 > scorePlayer2) {
+                    victoryText.textContent = `🏆 ¡Gana el Jugador 1 con ${scorePlayer1} puntos! 
+(Jugador 2 sumó ${scorePlayer2} puntos)`;
+                } else if (scorePlayer2 > scorePlayer1) {
+                    victoryText.textContent = `🏆 ¡Gana el Jugador 2 con ${scorePlayer2} puntos! 
+(Jugador 1 sumó ${scorePlayer1} puntos)`;
+                } else {
+                    victoryText.textContent = `🤝 ¡Es un empate! Ambos jugadores consiguieron ${scorePlayer1} puntos.`;
+                }
+            }
+            victoryMessage.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
