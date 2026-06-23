@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aventura con los Backyardigans</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap');
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            color: #333;
+        }
+
+        #app {
+            background: white;
+            width: 100%;
+            max-width: 400px;
+            height: 100vh;
+            max-height: 800px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .screen {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+            text-align: center;
+            animation: fadeIn 0.5s ease;
+            overflow-y: auto;
+        }
+        .screen.active { display: flex; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+
+        h1 { font-size: 2rem; color: #ff6b6b; margin-bottom: 1rem; text-shadow: 2px 2px 0px #ffeaa7; line-height: 1.2; }
+        h2 { font-size: 1.5rem; color: #4834d4; margin-bottom: 1rem; }
+        p { font-size: 1.2rem; margin-bottom: 1rem; color: #555; }
+
+        .btn {
+            background: #ff9ff3;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(255, 159, 243, 0.4);
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin: 10px;
+        }
+        .btn:hover, .btn:active {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 20px rgba(255, 159, 243, 0.6);
+        }
+
+        .btn-option {
+            background: #54a0ff;
+            width: 70px;
+            height: 70px;
+            font-size: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 5px 15px rgba(84, 160, 255, 0.4);
+        }
+
+        .character-img {
+            width: 150px;
+            height: 150px;
+            object-fit: contain;
+            margin: 20px 0;
+            filter: drop-shadow(0 10px 10px rgba(0,0,0,0.2));
+            animation: bounce 2s infinite ease-in-out;
+        }
+
+        @keyframes bounce { 
+            0%, 100% { transform: translateY(0); } 
+            50% { transform: translateY(-15px); } 
+        }
+
+        .items-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+            font-size: 3rem;
+            background: #f1f2f6;
+            padding: 20px;
+            border-radius: 20px;
+        }
+
+        .options-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: auto;
+            margin-bottom: 20px;
+        }
+
+        /* Personajes colores específicos */
+        .color-pablo { color: #0984e3; }
+        .color-tyrone { color: #d35400; }
+        .color-tasha { color: #f1c40f; }
+
+        .feedback {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255,255,255,0.9);
+            padding: 20px;
+            border-radius: 20px;
+            font-size: 2rem;
+            font-weight: bold;
+            color: #2ecc71;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .feedback.show { opacity: 1; animation: pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes pop { from { transform: translate(-50%, -50%) scale(0.5); } to { transform: translate(-50%, -50%) scale(1); } }
+
+    </style>
+</head>
+<body>
+
+<div id="app">
+    <!-- Feedback Overlay -->
+    <div id="feedback-msg" class="feedback">¡Correcto! 🌟</div>
+
+    <!-- PANTALLA INICIO -->
+    <div id="screen-start" class="screen active" style="background: #ffeaa7;">
+        <h1>Aventura Numérica con los Backyardigans</h1>
+        <p>Acompaña a tus amigos a resolver problemas usando los números.</p>
+        <img src="https://upload.wikimedia.org/wikipedia/en/e/ef/Pablo_the_penguin.png" class="character-img" alt="Pablo">
+        <button class="btn" onclick="startGame()">¡Comenzar! 🚀</button>
+        <p style="font-size: 0.8rem; margin-top: 20px;">🎶 Toca jugar con el volumen arriba.</p>
+    </div>
+
+    <!-- NIVEL 1: PABLO -->
+    <div id="screen-1" class="screen">
+        <h2 class="color-pablo">¡Hola! Soy Pablo 🐧</h2>
+        <p>¿Me ayudas a contar cuántas galletas hay aquí?</p>
+        <img src="https://upload.wikimedia.org/wikipedia/en/e/ef/Pablo_the_penguin.png" class="character-img" alt="Pablo">
+        
+        <div class="items-container">
+            🍪 🍪 🍪
+        </div>
+
+        <p>Toca el número correcto:</p>
+        <div class="options-container">
+            <button class="btn btn-option" onclick="checkAnswer(1, 3, 1)">1</button>
+            <button class="btn btn-option" onclick="checkAnswer(1, 3, 2)">2</button>
+            <button class="btn btn-option" onclick="checkAnswer(1, 3, 3)">3</button>
+        </div>
+    </div>
+
+    <!-- NIVEL 2: TYRONE -->
+    <div id="screen-2" class="screen">
+        <h2 class="color-tyrone">¡Hey! Soy Tyrone 🫎</h2>
+        <p>Necesito encontrar la casa que tiene el número <strong>Dos</strong>. ¿Cuál es?</p>
+        <img src="https://upload.wikimedia.org/wikipedia/en/3/36/Tyrone_the_moose.png" class="character-img" alt="Tyrone">
+        
+        <div class="options-container">
+            <button class="btn btn-option" onclick="checkAnswer(2, 2, 1)" style="flex-direction:column; display:flex; align-items:center; height:120px; font-size:1.5rem">🏠<br>1</button>
+            <button class="btn btn-option" onclick="checkAnswer(2, 2, 2)" style="flex-direction:column; display:flex; align-items:center; height:120px; font-size:1.5rem">🏠<br>2</button>
+            <button class="btn btn-option" onclick="checkAnswer(2, 2, 3)" style="flex-direction:column; display:flex; align-items:center; height:120px; font-size:1.5rem">🏠<br>3</button>
+        </div>
+    </div>
+
+    <!-- NIVEL 3: TASHA -->
+    <div id="screen-3" class="screen">
+        <h2 class="color-tasha">¡Hola cariño! Soy Tasha 🦛</h2>
+        <p>Tengo 4 flores 🌸 para mis amigos. Selecciona el cajón que puede guardar todas mis flores.</p>
+        <img src="https://upload.wikimedia.org/wikipedia/en/a/ab/Tasha_the_hippo.png" class="character-img" alt="Tasha">
+        
+        <div class="options-container">
+            <button class="btn btn-option" onclick="checkAnswer(3, 4, 2)" style="width:100px;">📦 [2]</button>
+            <button class="btn btn-option" onclick="checkAnswer(3, 4, 4)" style="width:100px;">📦 [4]</button>
+        </div>
+    </div>
+
+    <!-- PANTALLA FINAL -->
+    <div id="screen-end" class="screen" style="background: #55efc4;">
+        <h1 style="color: white; text-shadow: 2px 2px 0px #27ae60;">¡Lo logramos! 🎉</h1>
+        <p>Usaste los números muy bien para ayudar a los Backyardigans.</p>
+        <div style="display:flex; justify-content:center; gap: 10px;">
+            <img src="https://upload.wikimedia.org/wikipedia/en/0/05/Uniqua_the_uniqua.png" class="character-img" style="width:100px; height:100px;" alt="Uniqua">
+            <img src="https://upload.wikimedia.org/wikipedia/en/5/52/Austin_the_kangaroo.png" class="character-img" style="width:100px; height:100px;" alt="Austin">
+        </div>
+        <button class="btn" style="background: #2d3436; margin-top:20px;" onclick="location.reload()">Jugar de Nuevo 🔄</button>
+    </div>
+</div>
+
+<script>
+    // Sintetizador de voz para accesibilidad e instrucciones orales (no requiere internet)
+    const speak = (text) => {
+        if ('speechSynthesis' in window) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'es-MX';
+            utterance.rate = 1.1;
+            window.speechSynthesis.speak(utterance);
+        }
+    };
+
+    // Sintetizador de audio simple para música/efectos 100% offline sin base64 pesado
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    function playSuccessTone() {
+        if(audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        osc.type = 'triangle';
+        
+        // Melodía feliz
+        osc.frequency.setValueAtTime(440, audioCtx.currentTime); // A4
+        osc.frequency.setValueAtTime(554.37, audioCtx.currentTime + 0.1); // C#5
+        osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.2); // E5
+        
+        gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+        
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.5);
+    }
+
+    function playErrorTone() {
+        if(audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(150, audioCtx.currentTime); 
+        osc.frequency.setValueAtTime(100, audioCtx.currentTime + 0.3); 
+        gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.3);
+    }
+
+    // Funciones del flujo del juego
+    function switchScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+        
+        // Feedback oral según el nivel
+        setTimeout(() => {
+            if(screenId === 'screen-1') speak("Soy Pablo. ¿Me ayudas a contar cuántas galletas hay aquí?");
+            if(screenId === 'screen-2') speak("Soy Tyrone. Necesito encontrar la casa que tiene el número dos. ¿Cuál es?");
+            if(screenId === 'screen-3') speak("Soy Tasha. Tengo 4 flores. Selecciona la caja con el número cuatro.");
+            if(screenId === 'screen-end') {
+                speak("¡Felicidades! Lograste ayudar a todos usando los números.");
+                playSuccessTone(); setTimeout(playSuccessTone, 300); setTimeout(playSuccessTone, 600);
+            }
+        }, 500);
+    }
+
+    function startGame() {
+        // Reproducir sonido para despertar el AudioContext en Mobile
+        if(audioCtx.state === 'suspended') audioCtx.resume();
+        
+        // Simular musiquita inicial (canción simplificada The Backyardigans)
+        playSuccessTone();
+        
+        switchScreen('screen-1');
+    }
+
+    function checkAnswer(level, correct, selected) {
+        if(correct === selected) {
+            playSuccessTone();
+            const msg = document.getElementById('feedback-msg');
+            msg.classList.add('show');
+            msg.innerText = "¡Excelente! 🌟";
+            
+            setTimeout(() => {
+                msg.classList.remove('show');
+                if(level === 1) switchScreen('screen-2');
+                else if(level === 2) switchScreen('screen-3');
+                else if(level === 3) switchScreen('screen-end');
+            }, 1500);
+        } else {
+            playErrorTone();
+            const msg = document.getElementById('feedback-msg');
+            msg.classList.add('show');
+            msg.innerText = "Intenta de nuevo ❌";
+            msg.style.color = "#e74c3c";
+            setTimeout(() => {
+                msg.classList.remove('show');
+                msg.style.color = "#2ecc71"; // reset
+            }, 1000);
+        }
+    }
+</script>
+
+</body>
+</html>
