@@ -185,15 +185,17 @@
         /* Tablero del Memorama */
         .grid-container {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            gap: 12px;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 16px;
             width: 100%;
             perspective: 1000px;
+            max-width: 1000px;
+            margin: 0 auto;
         }
 
         /* Estilos de las Tarjetas */
         .card {
-            height: 110px;
+            height: 150px;
             position: relative;
             transform-style: preserve-3d;
             transition: transform 0.5s;
@@ -209,11 +211,11 @@
             width: 100%;
             height: 100%;
             backface-visibility: hidden;
-            border-radius: 15px;
+            border-radius: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
             font-weight: bold;
         }
 
@@ -221,8 +223,8 @@
         .card-back {
             background-color: var(--card-back);
             color: white;
-            font-size: 2.2rem;
-            border: 4px solid white;
+            font-size: 3.5rem;
+            border: 6px solid white;
         }
 
         /* Frente de la tarjeta */
@@ -231,14 +233,14 @@
             transform: rotateY(180deg);
             display: flex;
             flex-direction: column;
-            font-size: 1.2rem;
-            border: 4px solid #fff;
-            padding: 5px;
+            font-size: 1.4rem;
+            border: 6px solid #fff;
+            padding: 10px;
         }
 
         .card-front.type-number {
             border-color: var(--card-front-num);
-            font-size: 3rem;
+            font-size: 4.5rem;
             color: var(--card-front-num);
         }
 
@@ -250,7 +252,7 @@
         .shapes-container {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
-            gap: 3px;
+            gap: 4px;
             justify-items: center;
             align-items: center;
             width: 100%;
@@ -258,11 +260,10 @@
         }
 
         .shape {
-            width: 12px;
-            height: 12px;
             background-color: #ffeb3b;
-            border: 1.5px solid #fbc02d;
+            border: 2px solid #fbc02d;
             border-radius: 50%;
+            box-shadow: 1px 1px 3px rgba(0,0,0,0.15);
         }
 
         /* Mensaje de Victoria */
@@ -354,6 +355,18 @@
         let scorePlayer1 = 0;
         let scorePlayer2 = 0;
         let activePlayer = 1; // 1 o 2
+
+        // Función de voz (Text to Speech)
+        function speak(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'es-MX';
+                utterance.rate = 0.95;
+                utterance.pitch = 1.15;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
 
         function selectMode(mode) {
             gameMode = mode;
@@ -460,16 +473,37 @@
                     const shapesContainer = document.createElement('div');
                     shapesContainer.classList.add('shapes-container');
                     
-                    if (maxNumber > 15) {
-                        shapesContainer.style.gridTemplateColumns = 'repeat(6, 1fr)';
-                    }
-                    if (maxNumber > 20) {
-                        shapesContainer.style.gridTemplateColumns = 'repeat(7, 1fr)';
+                    const val = data.value;
+                    let cols = 3;
+                    let size = 26;
+                    
+                    if (val <= 3) {
+                        cols = 2;
+                        size = 36;
+                    } else if (val <= 6) {
+                        cols = 3;
+                        size = 30;
+                    } else if (val <= 10) {
+                        cols = 4;
+                        size = 24;
+                    } else if (val <= 15) {
+                        cols = 5;
+                        size = 20;
+                    } else if (val <= 20) {
+                        cols = 5;
+                        size = 18;
+                    } else {
+                        cols = 6;
+                        size = 15;
                     }
                     
-                    for (let i = 0; i < data.value; i++) {
+                    shapesContainer.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+                    
+                    for (let i = 0; i < val; i++) {
                         const shape = document.createElement('div');
                         shape.classList.add('shape');
+                        shape.style.width = `${size}px`;
+                        shape.style.height = `${size}px`;
                         shapesContainer.appendChild(shape);
                     }
                     front.appendChild(shapesContainer);
@@ -488,6 +522,15 @@
 
             this.classList.add('flipped');
             flippedCards.push(this);
+
+            // Decir el número o la cantidad de bolitas en voz alta
+            const id = this.dataset.id;
+            const type = this.dataset.type;
+            if (type === 'number') {
+                speak(id);
+            } else {
+                speak(id + (id === "1" ? " bolita" : " bolitas"));
+            }
 
             if (flippedCards.length === 2) {
                 checkMatch();
